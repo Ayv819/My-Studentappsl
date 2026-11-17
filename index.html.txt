@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<h2>Study App SL</h2>
+<nav><a href="chat.html">Chat Groups</a> <a href="notebook.html">My Notebook</a></nav>
+</header>
+<div class="card">
+<h1>Study Together. Pass Together.</h1>
+<p>Chat with students, share files, send audio messages, and keep your notebook in one place.</p>
+<button onclick="location.href='chat.html'">Open Chat Groups</button>
+<button onclick="location.href='notebook.html'">Open My Notebook</button>
+</div>
+</body>
+</html>

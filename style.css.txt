@@ -1,0 +1,12 @@
+body{margin:0;font-family:Arial;background:#0f172a;color:white;}
+header{background:#1e293b;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+a{color:#facc15;text-decoration:none;margin-left:10px;}
+.card{background:#1e293b;margin:15px;padding:20px;border-radius:12px;}
+input,button{padding:12px;border-radius:8px;border:none;margin:5px 0;}
+button{background:#f59e0b;font-weight:bold;cursor:pointer;}
+#messages{height:350px;overflow-y:auto;background:#020617;padding:10px;border-radius:10px;}
+.msg{background:#334155;padding:10px;margin:8px 0;border-radius:10px;max-width:80%;}
+.msg.me{background:#2563eb;margin-left:auto;}
+.chat-bar{display:flex;gap:5px;margin-top:10px;}
+.chat-bar input{flex:1;}
+audio,img,video{max-width:100%;border-radius:8px;margin-top:5px;}

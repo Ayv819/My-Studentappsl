@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Groups - Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<h2>Study App SL</h2>
+<nav>
+<a href="index.html">Home</a>
+<a href="notebook.html">My Notebook</a>
+</nav>
+</header>
+
+<div class="card">
+<h3>Study Groups</h3>
+<button onclick="joinGroup('Math SS1')">Math SS1</button>
+<button onclick="joinGroup('English SS2')">English SS2</button>
+<button onclick="joinGroup('Biology SS3')">Biology SS3</button>
+<button onclick="joinGroup('General Chat')">General Chat</button>
+<p id="currentGroup">You are in: General Chat</p>
+
+<div id="messages"></div>
+
+<div class="chat-bar">
+<input type="text" id="textInput" placeholder="Type a message...">
+<button onclick="sendText()">Send</button>
+</div>
+
+<div class="chat-bar">
+<label for="fileInput" style="cursor:pointer;background:#f59e0b;padding:12px;border-radius:8px;font-weight:bold;">+ Attach</label>
+<input type="file" id="fileInput" style="display:none" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+<button id="micBtn">🎤 Record Audio</button>
+</div>
+<p id="recordStatus"></p>
+</div>
+
+<script>
+let currentGroup = localStorage.getItem("currentGroup") || "General Chat";
+let mediaRecorder;
+let audioChunks = [];
+
+document.getElementById("currentGroup").innerText = "You are in: " + currentGroup;
+loadMessages();
+
+function joinGroup(name){
+  currentGroup = name;
+  localStorage.setItem("currentGroup", name);
+  document.getElementById("currentGroup").innerText = "You are in: " + name;
+  loadMessages();
+}
+
+function getKey(){ return "chat_" + currentGroup; }
+
+function loadMessages(){
+  let box = document.getElementById("messages");
+  box.innerHTML = "";
+  let msgs = JSON.parse(localStorage.getItem(getKey()) || "[]");
+  msgs.forEach(m => renderMessage(m));
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderMessage(m){
+  let box = document.getElementById("messages");
+  let div = document.createElement("div");
+  div.className = "msg me";
+  let content = "";
+  if(m.type === "text") content = m.text;
+  if(m.type === "image") content = '<img src="'+m.data+'">';
+  if(m.type === "video") content = '<video controls src="'+m.data+'"></video>';
+  if(m.type === "audio") content = '<audio controls src="'+m.data+'"></audio>';
+  if(m.type === "file") content = '📄 File shared: ' + m.name;
+  div.innerHTML = "<small>You</small><br>" + content;
+  box.appendChild(div);
+}
+
+function saveMessage(msg){
+  let msgs = JSON.parse(localStorage.getItem(getKey()) || "[]");
+  msgs.push(msg);
+  localStorage.setItem(getKey(), JSON.stringify(msgs));
+  renderMessage(msg);
+  document.getElementById("messages").scrollTop = 99999;
+}
+
+function sendText(){
+  let input = document.getElementById("textInput");
+  if(input.value.trim() === "") return;
+  saveMessage({type:"text", text:input.value});
+  input.value = "";
+}
+
+// ATTACH FILE
+document.getElementById("fileInput").addEventListener("change", function(e){
+  let file = e.target.files[0];
+  if(!file) return;
+  let reader = new FileReader();
+  reader.onload = function(){
+    let type = "file";
+    if(file.type.startsWith("image")) type = "image";
+    if(file.type.startsWith("video")) type = "video";
+    saveMessage({type:type, data:reader.result, name:file.name});
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
+});
+
+// AUDIO RECORDING
+document.getElementById("micBtn").addEventListener("click", async function(){
+  let btn = this;
+  if(!mediaRecorder || mediaRecorder.state === "inactive"){
+    try{
+      let stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        let blob = new Blob(audioChunks, {type:"audio/webm"});
+        let reader = new FileReader();
+        reader.onload = () => saveMessage({type:"audio", data:reader.result});
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      btn.innerText = "⏹ Stop & Send";
+      document.getElementById("recordStatus").innerText = "Recording... speak now";
+    }catch(err){
+      alert("Microphone permission denied. Please allow mic access.");
+    }
+  } else {
+    mediaRecorder.stop();
+    btn.innerText = "🎤 Record Audio";
+    document.getElementById("recordStatus").innerText = "";
+  }
+});
+</script>
+</body>
+</html>
