@@ -1,0 +1,16 @@
+body{margin:0;font-family:Arial;background:#0b141a;color:white;}
+header{background:#075e54;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;}
+header h2{margin:0;font-size:20px;color:white;}
+a{color:#e9edef;text-decoration:none;margin-left:12px;font-size:14px;font-weight:bold;}
+.card{background:#111b21;margin:12px;padding:15px;border-radius:12px;}
+input,button{padding:12px;border-radius:20px;border:none;margin:5px 0;box-sizing:border-box;}
+input{background:#2a3942;color:white;width:100%;}
+button{background:#00a884;color:white;font-weight:bold;cursor:pointer;}
+#messages,#privateMessages{height:320px;overflow-y:auto;background:#0b141a;padding:10px;border-radius:10px;display:flex;flex-direction:column;}
+.msg{background:#202c33;padding:8px 12px;margin:6px 0;border-radius:12px;max-width:75%;align-self:flex-start;}
+.msg.me{background:#005c4b;align-self:flex-end;}
+.time{font-size:10px;color:#cbd5e1;text-align:right;margin-top:4px;}
+.chat-bar{display:flex;gap:6px;margin-top:10px;align-items:center;}
+.chat-bar input{flex:1;margin:0;}
+audio,img,video{max-width:100%;border-radius:8px;margin-top:5px;}
+.online-dot{display:inline-block;width:10px;height:10px;background:#25d366;border-radius:50%;margin-right:6px;}

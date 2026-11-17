@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h2>Study App SL</h2></header>
+
+<div class="card" id="signupBox">
+<h2>Create Account</h2>
+<input type="text" id="suName" placeholder="Full Name">
+<input type="tel" id="suPhone" placeholder="Phone Number">
+<input type="password" id="suPass" placeholder="Password">
+<button onclick="signup()">Sign Up</button>
+<p>Already have account? <a href="#" onclick="showLogin()" style="color:#25d366">Login</a></p>
+<p id="suMsg"></p>
+</div>
+
+<div class="card" id="loginBox" style="display:none">
+<h2>Login</h2>
+<input type="tel" id="liPhone" placeholder="Phone Number">
+<input type="password" id="liPass" placeholder="Password">
+<button onclick="login()">Login</button>
+<p>New here? <a href="#" onclick="showSignup()" style="color:#25d366">Sign Up</a></p>
+<p id="liMsg"></p>
+</div>
+
+<script>
+function showLogin(){
+  document.getElementById("signupBox").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+}
+function showSignup(){
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("signupBox").style.display = "block";
+}
+function signup(){
+  let name = document.getElementById("suName").value.trim();
+  let phone = document.getElementById("suPhone").value.trim();
+  let pass = document.getElementById("suPass").value.trim();
+  let msg = document.getElementById("suMsg");
+  if(name==="" || phone==="" || pass===""){ msg.innerText="Fill all fields"; msg.style.color="#ff6b6b"; return; }
+  let users = JSON.parse(localStorage.getItem("users") || "[]");
+  if(users.find(u => u.phone === phone)){ msg.innerText="Phone already registered. Please login."; msg.style.color="#ff6b6b"; return; }
+  users.push({name:name, phone:phone, pass:pass});
+  localStorage.setItem("users", JSON.stringify(users));
+  localStorage.setItem("currentUser", JSON.stringify({name:name, phone:phone}));
+  localStorage.setItem("profileName", name);
+  localStorage.setItem("profilePhone", phone);
+  window.location.href = "index.html";
+}
+function login(){
+  let phone = document.getElementById("liPhone").value.trim();
+  let pass = document.getElementById("liPass").value.trim();
+  let msg = document.getElementById("liMsg");
+  let users = JSON.parse(localStorage.getItem("users") || "[]");
+  let user = users.find(u => u.phone === phone && u.pass === pass);
+  if(!user){ msg.innerText="Wrong phone or password"; msg.style.color="#ff6b6b"; return; }
+  localStorage.setItem("currentUser", JSON.stringify({name:user.name, phone:user.phone}));
+  localStorage.setItem("profileName", user.name);
+  localStorage.setItem("profilePhone", user.phone);
+  window.location.href = "index.html";
+}
+if(localStorage.getItem("currentUser")){ window.location.href = "index.html"; }
+</script>
+</body>
+</html>

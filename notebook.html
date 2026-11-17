@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Notebook - Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+if(!localStorage.getItem("currentUser")){ window.location.href = "auth.html"; }
+</script>
+<header>
+<header>
+<h2>My Notebook</h2>
+<nav>
+<a href="index.html">Home</a>
+<a href="chat.html">Chat</a>
+<a href="contacts.html">Contacts</a>
+<a href="profile.html">Profile</a>
+</nav>
+</header>
+
+<div class="card">
+<h3>Upload to your notebook</h3>
+<input type="file" id="noteFile" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt">
+<button onclick="uploadNote()">Upload</button>
+<div id="noteList"></div>
+</div>
+
+<script>
+function loadNotes(){
+  let list = document.getElementById("noteList");
+  list.innerHTML = "<h3>Saved Items</h3>";
+  let notes = JSON.parse(localStorage.getItem("myNotebook") || "[]");
+  if(notes.length === 0){ list.innerHTML += "<p>No items yet. Upload your first note.</p>"; return; }
+  notes.forEach((n,i) => {
+    let div = document.createElement("div");
+    div.className = "msg";
+    let preview = "";
+    if(n.type.startsWith("image")) preview = '<img src="'+n.data+'">';
+    if(n.type.startsWith("video")) preview = '<video controls src="'+n.data+'"></video>';
+    if(n.type.startsWith("audio")) preview = '<audio controls src="'+n.data+'"></audio>';
+    if(n.type === "application/pdf" || n.name.endsWith(".pdf")) preview = '📄 PDF: '+n.name;
+    div.innerHTML = preview + "<br><b>"+n.name+"</b><br><button onclick='deleteNote("+i+")'>Delete</button> <a href='"+n.data+"' download='"+n.name+"' style='color:#00d4ff'>Download</a>";
+    list.appendChild(div);
+  });
+}
+
+function uploadNote(){
+  let file = document.getElementById("noteFile").files[0];
+  if(!file){ alert("Please choose a file first"); return; }
+  let reader = new FileReader();
+  reader.onload = function(){
+    let notes = JSON.parse(localStorage.getItem("myNotebook") || "[]");
+    notes.push({name:file.name, type:file.type, data:reader.result});
+    localStorage.setItem("myNotebook", JSON.stringify(notes));
+    loadNotes();
+    document.getElementById("noteFile").value = "";
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteNote(i){
+  let notes = JSON.parse(localStorage.getItem("myNotebook") || "[]");
+  notes.splice(i,1);
+  localStorage.setItem("myNotebook", JSON.stringify(notes));
+  loadNotes();
+}
+loadNotes();
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacts - Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <body>
+<script>
+if(!localStorage.getItem("currentUser")){ window.location.href = "auth.html"; }
+</script>
+<header>
+<header>
+<h2>Contacts</h2>
+<nav>
+<a href="index.html">Home</a>
+<a href="chat.html">Groups</a>
+<a href="notebook.html">Notebook</a>
+<a href="profile.html">Profile</a>
+</nav>
+</header>
+
+<div class="card">
+<h3>Add New Contact</h3>
+<input type="text" id="cName" placeholder="Full Name">
+<input type="tel" id="cPhone" placeholder="Phone Number e.g. 076xxxxxx">
+<button onclick="addContact()">Add Contact</button>
+<h3>My Contacts</h3>
+<input type="text" id="searchInput" placeholder="Search contacts by name or phone..." onkeyup="searchContacts()">
+<div id="contactList"></div>
+</div>
+
+<div class="card" id="privateChatBox" style="display:none">
+<h3 id="chatTitle">Chat</h3>
+<div id="privateMessages" style="height:300px;overflow-y:auto;background:#020617;padding:10px;border-radius:10px;"></div>
+
+<div class="chat-bar">
+<input type="text" id="privateInput" placeholder="Type a message...">
+<button onclick="sendPrivateText()">Send</button>
+</div>
+
+<div class="chat-bar">
+<label for="privateFileInput" style="cursor:pointer;background:#f59e0b;padding:12px;border-radius:8px;font-weight:bold;">+ Attach</label>
+<input type="file" id="privateFileInput" style="display:none" accept="image/*,video/*,.pdf,.doc,.docx,.txt">
+<button id="privateMicBtn">🎤 Record Audio</button>
+</div>
+<p id="privateRecordStatus"></p>
+</div>
+
+<script>
+let activeContact = null;
+let mediaRecorder;
+let audioChunks = [];
+
+function searchContacts(){
+  let query = document.getElementById("searchInput").value.toLowerCase();
+  let contacts = JSON.parse(localStorage.getItem("myContacts") || "[]");
+  let list = document.getElementById("contactList");
+  list.innerHTML = "";
+  let filtered = contacts.filter(c => c.name.toLowerCase().includes(query) || c.phone.includes(query));
+  if(filtered.length === 0){
+    list.innerHTML = "<p>No contact found.</p>";
+    return;
+  }
+  filtered.forEach((c) => {
+    let realIndex = contacts.findIndex(x => x.phone === c.phone && x.name === c.name);
+    let div = document.createElement("div");
+    div.className = "msg";
+        div.innerHTML = "<span class='online-dot'></span><b>" + c.name + "</b> <small style='color:#25d366'>online</small><br>" + c.phone + "<br><br>" +
+      "<button onclick='openChat(" + realIndex + ")'>💬 Text</button> " +
+      "<button onclick='deleteContact(" + realIndex + ")' style='background:#dc2626;color:white'>Delete</button>";
+    list.appendChild(div);
+  });
+}
+function loadContacts(){
+  let list = document.getElementById("contactList");
+  list.innerHTML = "";
+  let contacts = JSON.parse(localStorage.getItem("myContacts") || "[]");
+  if(contacts.length === 0){
+    list.innerHTML = "<p>No contacts yet. Add your first contact above.</p>";
+    return;
+  }
+  contacts.forEach((c, i) => {
+    let div = document.createElement("div");
+    div.className = "msg";
+        div.innerHTML = "<span class='online-dot'></span><b>" + c.name + "</b> <small style='color:#25d366'>online</small><br>" + c.phone + "<br><br>" +
+      "<button onclick='openChat(" + i + ")'>💬 Text</button> " +
+      "<button onclick='deleteContact(" + i + ")' style='background:#dc2626;color:white'>Delete</button>";
+    list.appendChild(div);
+  });
+}
+
+function addContact(){
+  let name = document.getElementById("cName").value.trim();
+  let phone = document.getElementById("cPhone").value.trim();
+  if(name === "" || phone === ""){
+    alert("Please enter name and phone number");
+    return;
+  }
+  let contacts = JSON.parse(localStorage.getItem("myContacts") || "[]");
+  contacts.push({name: name, phone: phone});
+  localStorage.setItem("myContacts", JSON.stringify(contacts));
+  document.getElementById("cName").value = "";
+  document.getElementById("cPhone").value = "";
+  loadContacts();
+}
+
+function deleteContact(i){
+  let contacts = JSON.parse(localStorage.getItem("myContacts") || "[]");
+  contacts.splice(i,1);
+  localStorage.setItem("myContacts", JSON.stringify(contacts));
+  loadContacts();
+  document.getElementById("privateChatBox").style.display = "none";
+}
+
+function openChat(i){
+  let contacts = JSON.parse(localStorage.getItem("myContacts") || "[]");
+  activeContact = contacts[i];
+  document.getElementById("privateChatBox").style.display = "block";
+  document.getElementById("chatTitle").innerText = "Chat with " + activeContact.name + " (" + activeContact.phone + ")";
+  loadPrivateMessages();
+  document.getElementById("privateChatBox").scrollIntoView({behavior:"smooth"});
+}
+
+function privateKey(){
+  return "private_" + activeContact.phone;
+}
+
+function renderPrivate(m){
+  let box = document.getElementById("privateMessages");
+  let div = document.createElement("div");
+  div.className = "msg me";
+  let content = "";
+  if(m.type === "text") content = m.text;
+  if(m.type === "image") content = '<img src="'+m.data+'">';
+  if(m.type === "video") content = '<video controls src="'+m.data+'"></video>';
+  if(m.type === "audio") content = '<audio controls src="'+m.data+'"></audio>';
+  if(m.type === "file") content = '📄 File shared: ' + m.name;
+    div.innerHTML = "<small>You</small><br>" + content + '<div class="time">' + (m.time || "") + '</div>';
+  box.appendChild(div);
+}
+
+function loadPrivateMessages(){
+  let box = document.getElementById("privateMessages");
+  box.innerHTML = "";
+  let msgs = JSON.parse(localStorage.getItem(privateKey()) || "[]");
+  msgs.forEach(m => renderPrivate(m));
+  box.scrollTop = box.scrollHeight;
+}
+
+function savePrivate(msg){
+  msg.time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  let msgs = JSON.parse(localStorage.getItem(privateKey()) || "[]");
+  msgs.push(msg);
+  localStorage.setItem(privateKey(), JSON.stringify(msgs));
+  renderPrivate(msg);
+  document.getElementById("privateMessages").scrollTop = 99999;
+}
+
+
+
+function sendPrivateText(){
+  let input = document.getElementById("privateInput");
+  if(input.value.trim() === "") return;
+  savePrivate({type:"text", text:input.value});
+  input.value = "";
+}
+
+// ATTACH FOR PRIVATE CHAT
+document.getElementById("privateFileInput").addEventListener("change", function(e){
+  let file = e.target.files[0];
+  if(!file || !activeContact) return;
+  let reader = new FileReader();
+  reader.onload = function(){
+    let type = "file";
+    if(file.type.startsWith("image")) type = "image";
+    if(file.type.startsWith("video")) type = "video";
+    savePrivate({type:type, data:reader.result, name:file.name});
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
+});
+
+// AUDIO FOR PRIVATE CHAT
+document.getElementById("privateMicBtn").addEventListener("click", async function(){
+  let btn = this;
+  if(!mediaRecorder || mediaRecorder.state === "inactive"){
+    try{
+      let stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        let blob = new Blob(audioChunks, {type:"audio/webm"});
+        let reader = new FileReader();
+        reader.onload = () => savePrivate({type:"audio", data:reader.result});
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      btn.innerText = "⏹ Stop & Send";
+      document.getElementById("privateRecordStatus").innerText = "Recording... speak now";
+    }catch(err){
+      alert("Microphone permission denied. Please allow mic access.");
+    }
+  } else {
+    mediaRecorder.stop();
+    btn.innerText = "🎤 Record Audio";
+    document.getElementById("privateRecordStatus").innerText = "";
+  }
+});
+
+loadContacts();
+</script>
+</body>
+</html>

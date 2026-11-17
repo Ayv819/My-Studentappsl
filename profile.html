@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile - Study App SL</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+if(!localStorage.getItem("currentUser")){ window.location.href = "auth.html"; }
+</script>
+<header>
+<h2>My Profile</h2>
+<nav>
+<a href="index.html">Home</a>
+<a href="chat.html">Groups</a>
+<a href="contacts.html">Contacts</a>
+<a href="notebook.html">Notebook</a>
+<a href="profile.html">Profile</a>
+</nav>
+</header>
+
+<div class="card" style="text-align:center">
+<img id="profilePic" src="https://via.placeholder.com/120" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #f59e0b;">
+<br><br>
+<label for="picInput" style="cursor:pointer;background:#f59e0b;padding:10px 15px;border-radius:8px;font-weight:bold;color:black;">Change Photo</label>
+<input type="file" id="picInput" accept="image/*" style="display:none">
+
+<h3 id="displayName">Your Name</h3>
+<p id="displayPhone">Your Phone</p>
+<p id="displayBio" style="color:#cbd5e1">Studying hard in Sierra Leone</p>
+</div>
+
+<div class="card">
+<h3>Edit Profile</h3>
+<input type="text" id="editName" placeholder="Full Name">
+<input type="tel" id="editPhone" placeholder="Phone Number">
+<input type="text" id="editBio" placeholder="Bio e.g. SS2 Science Student">
+<button onclick="saveProfile()">Save Profile</button>
+<p id="saveMsg"></p>
+</div>
+
+<script>
+function loadProfile(){
+  let name = localStorage.getItem("profileName") || "Your Name";
+  let phone = localStorage.getItem("profilePhone") || "Add your phone number";
+  let bio = localStorage.getItem("profileBio") || "Studying hard in Sierra Leone";
+  let pic = localStorage.getItem("profilePic");
+
+  document.getElementById("displayName").innerText = name;
+  document.getElementById("displayPhone").innerText = phone;
+  document.getElementById("displayBio").innerText = bio;
+  document.getElementById("editName").value = name === "Your Name" ? "" : name;
+  document.getElementById("editPhone").value = phone === "Add your phone number" ? "" : phone;
+  document.getElementById("editBio").value = bio;
+  if(pic) document.getElementById("profilePic").src = pic;
+}
+
+function saveProfile(){
+  let name = document.getElementById("editName").value.trim();
+  let phone = document.getElementById("editPhone").value.trim();
+  let bio = document.getElementById("editBio").value.trim();
+  if(name === "" || phone === ""){
+    alert("Name and phone are required");
+    return;
+  }
+  localStorage.setItem("profileName", name);
+  localStorage.setItem("profilePhone", phone);
+  localStorage.setItem("profileBio", bio);
+  document.getElementById("saveMsg").innerText = "Profile saved successfully!";
+  document.getElementById("saveMsg").style.color = "#4ade80";
+  loadProfile();
+}
+
+document.getElementById("picInput").addEventListener("change", function(e){
+  let file = e.target.files[0];
+  if(!file) return;
+  let reader = new FileReader();
+  reader.onload = function(){
+    localStorage.setItem("profilePic", reader.result);
+    document.getElementById("profilePic").src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+loadProfile();
+</script>
+</body>
+</html>
